@@ -1,272 +1,181 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>لوحة تتبع الدومينو</title>
   <style>
-    :root {
-      --clr-bg: #f4f5f7;
-      --clr-card: #ffffff;
-      --clr-card-edge: #e2e8f0;
-      --clr-border: #cbd5e1;
-      --clr-check: #10b981;
-      --clr-stop: #ef4444;
+    :root{
+      --clr-bg:#f4f5f7;
+      --clr-card:#ffffff;
+      --clr-card-edge:#e2e8f0;
+      --clr-border:#cbd5e1;
+      --clr-stop:#ef4444;  /* أحمر */
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Cairo",sans-serif;
+      background:var(--clr-bg);
+      color:#0f172a;
+      padding:0.5rem;
+      display:flex;
+      flex-direction:row-reverse;
+      gap:1rem;
+    }
+    h1{margin:0 0 0.75rem;text-align:center;font-size:1.2rem;}
+
+    /* الحاوية */
+    .columns{display:flex;flex-direction:row-reverse;gap:0.5rem;align-items:flex-start;}
+    .column{display:flex;flex-direction:column;gap:0.5rem;}
+
+    /* البلاطة */
+    .tile{
+      width:clamp(42px,12vw,60px);
+      aspect-ratio:1 / 1.6;
+      background:linear-gradient(160deg,var(--clr-card) 0%,var(--clr-card-edge) 100%);
+      border:1px solid var(--clr-border);
+      border-radius:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,.08);
+      position:relative;
+      padding:4px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      align-items:center;
+      user-select:none;
+      cursor:pointer;
+    }
+    .tile:active{transform:scale(.97);}    
+
+    .marker{
+      position:absolute;
+      top:2px;
+      inset-inline-end:2px;
+      width:7px;
+      height:7px;
+      border-radius:50%;
+      background:transparent;
+      pointer-events:none;
     }
 
-    body {
-      margin: 0;
-      font-family: "Cairo", sans-serif;
-      background: var(--clr-bg);
-      color: #0f172a;
-      padding: 0.75rem;
+    .divider{width:80%;height:1px;background:#6b7280;}
+
+    .num{
+      font-size:.9rem;
+      font-weight:bold;
     }
 
-    h1 {
-      margin: 0 0 0.75rem;
-      text-align: center;
-      font-size: 1.2rem;
+    /* الإحصاء */
+    .counterBox{
+      min-width:120px;
+      background:#ffffff;
+      border:1px solid var(--clr-border);
+      border-radius:8px;
+      padding:0.5rem;
+      box-shadow:0 2px 6px rgba(0,0,0,.05);
+      align-self:flex-start;
     }
-
-    .layout {
-      display: flex;
-      flex-direction: row-reverse;
-      gap: 1rem;
-      justify-content: center;
-      align-items: flex-start;
-      flex-wrap: wrap;
-    }
-
-    .grid {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    .row {
-      display: flex;
-      gap: 0.5rem;
-      justify-content: center;
-    }
-
-    .tile {
-      width: clamp(42px, 13vw, 60px);
-      aspect-ratio: 1 / 1.6;
-      background: linear-gradient(160deg, var(--clr-card) 0%, var(--clr-card-edge) 100%);
-      border: 1px solid var(--clr-border);
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      position: relative;
-      padding: 2px 4px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      user-select: none;
-      cursor: pointer;
-    }
-
-    .tile:active { transform: scale(0.97); }
-
-    .marker {
-      position: absolute;
-      top: 1px;
-      inset-inline-end: 1px;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: transparent;
-      pointer-events: none;
-    }
-
-    .tileNumber {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #1e293b;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 45%;
-    }
-
-    .divider {
-      width: 80%;
-      height: 1px;
-      background: #6b7280;
-    }
-
-    .counterBox {
-      background: #ffffff;
-      border: 1px solid var(--clr-border);
-      border-radius: 8px;
-      padding: 0.5rem;
-      min-width: 200px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    }
-
-    .counterBox h2 {
-      margin: 0 0 0.5rem;
-      text-align: center;
-      font-size: 0.95rem;
-      color: #0f172a;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.8rem;
-    }
-
-    td {
-      padding: 3px 4px;
-      text-align: center;
-    }
-
-    tr:nth-child(even) td { background: #f8fafc; }
-
-    #resetBtn {
-      margin-top: 8px;
-      width: 100%;
-      padding: 6px;
-      border: none;
-      border-radius: 4px;
-      background: #475569;
-      color: #fff;
-      font-size: 0.8rem;
-      cursor: pointer;
-    }
-
-    #resetBtn:hover { background: #334155; }
-
-    @media (max-width: 600px) {
-      .tile { width: 48px; }
-      .tileNumber { font-size: 1rem; }
-    }
+    .counterBox h2{margin:0 0 0.5rem;text-align:center;font-size:.95rem;color:#0f172a;}
+    table{width:100%;border-collapse:collapse;font-size:.8rem;}
+    td{padding:3px 0;text-align:center;}
+    tr:nth-child(even) td{background:#f8fafc;}
+    #resetBtn{margin-top:8px;width:100%;padding:6px;border:none;border-radius:4px;background:#475569;color:#fff;font-size:.8rem;cursor:pointer;}
+    #resetBtn:hover{background:#334155;}
   </style>
 </head>
 <body>
-  <h1>لوحة تتبع الدومينو</h1>
-  <div class="layout">
-    <div class="grid" id="dominoGrid"></div>
+  <div class="columns" id="dominoGrid"></div>
 
-    <section class="counterBox">
-      <h2>الإحصاء</h2>
-      <table><tbody id="counterTable"></tbody></table>
-
-      <h2>البوابات المتبقية</h2>
-      <table><tbody id="doorsTable"></tbody></table>
-
-      <button id="resetBtn">إعادة ضبط</button>
-    </section>
-  </div>
+  <section class="counterBox">
+    <h2>الإحصاء</h2>
+    <table><tbody id="counterTable"></tbody></table>
+    <button id="resetBtn">إعادة ضبط</button>
+  </section>
 
   <script>
     const grid = document.getElementById('dominoGrid');
     const counterTable = document.getElementById('counterTable');
-    const doorsTable = document.getElementById('doorsTable');
     const resetBtn = document.getElementById('resetBtn');
 
-    const savedStates = JSON.parse(localStorage.getItem('dominoStates') || '{}');
+    /* توليد البلاطات */
+    const tilesData = [];
+    for(let i=0;i<=6;i++){
+      for(let j=i;j<=6;j++){
+        tilesData.push({top:i,bottom:j,id:`${i}-${j}`});
+      }
+    }
 
-    function createTile(top, bottom, id) {
-      const tile = document.createElement('div');
-      tile.className = 'tile';
-      tile.dataset.id = id;
+    const savedStates = JSON.parse(localStorage.getItem('dominoStates')||'{}');
 
-      const marker = document.createElement('span');
-      marker.className = 'marker';
-      tile.appendChild(marker);
+    function createTile(a,b,id){
+      const tile=document.createElement('div');tile.className='tile';tile.dataset.id=id;
+      const marker=document.createElement('span');marker.className='marker';tile.appendChild(marker);
 
-      const topLabel = document.createElement('div');
-      topLabel.className = 'tileNumber';
-      topLabel.textContent = top;
+      const topNum=document.createElement('div');topNum.className='num';topNum.textContent=a;
+      const divider=document.createElement('div');divider.className='divider';
+      const bottomNum=document.createElement('div');bottomNum.className='num';bottomNum.textContent=b;
 
-      const divider = document.createElement('div');
-      divider.className = 'divider';
+      tile.append(topNum,divider,bottomNum);
 
-      const bottomLabel = document.createElement('div');
-      bottomLabel.className = 'tileNumber';
-      bottomLabel.textContent = bottom;
+      let currentState=savedStates[id]||'unknown';
+      applyState(tile,currentState);
 
-      tile.append(topLabel, divider, bottomLabel);
-
-      let currentState = savedStates[id] || 'unknown';
-      applyState(tile, currentState);
-
-      tile.addEventListener('click', () => {
-        currentState = currentState === 'hand' ? 'unknown' : 'hand';
-        applyState(tile, currentState);
+      tile.addEventListener('click',()=>{
+        currentState=(currentState==='hand')?'unknown':'hand';
+        applyState(tile,currentState);
         saveStates();
-        updateCounters();
+        updateCounter();
       });
 
       return tile;
     }
 
-    function applyState(tile, state) {
-      tile.dataset.state = state;
-      const marker = tile.querySelector('.marker');
-      marker.style.background = state === 'hand' ? 'var(--clr-stop)' : 'transparent';
+    function applyState(tile,state){
+      tile.dataset.state=state;
+      const marker=tile.querySelector('.marker');
+      if(state==='hand') marker.style.background='var(--clr-stop)';
+      else marker.style.background='transparent';
     }
 
-    function buildGrid() {
-      grid.innerHTML = '';
-      for (let i = 0; i <= 6; i++) {
-        const row = document.createElement('div');
-        row.className = 'row';
-        for (let j = 0; j <= i; j++) {
-          const top = j;
-          const bottom = i;
-          const id = `${top}-${bottom}`;
-          const tile = createTile(bottom, top, id);
-          row.appendChild(tile);
+    function buildGrid(){
+      for(let i=0;i<=6;i++){
+        const col=document.createElement('div');col.className='column';
+        for(let j=i;j<=6;j++){
+          const tile=createTile(i,j,`${i}-${j}`);
+          col.appendChild(tile);
         }
-        grid.appendChild(row);
+        grid.appendChild(col);
       }
     }
 
-    function saveStates() {
-      const states = {};
-      document.querySelectorAll('.tile').forEach(t => {
-        states[t.dataset.id] = t.dataset.state || 'unknown';
+    function saveStates(){
+      const states={};
+      document.querySelectorAll('.tile').forEach(t=>{
+        states[t.dataset.id]=t.dataset.state||'unknown';
       });
-      localStorage.setItem('dominoStates', JSON.stringify(states));
+      localStorage.setItem('dominoStates',JSON.stringify(states));
     }
 
-    function updateCounters() {
-      const counts = Array(7).fill(0);
-      const doors = Array(7).fill(null).map(() => []);
-
-      document.querySelectorAll('.tile').forEach(t => {
-        const state = t.dataset.state;
-        if (state === 'unknown') {
-          const [a, b] = t.dataset.id.split('-').map(Number);
-          counts[a]++;
-          counts[b]++;
-          doors[a].push(t.dataset.id);
-          if (a !== b) doors[b].push(t.dataset.id);
+    function updateCounter(){
+      const counts=Array(7).fill(0);
+      document.querySelectorAll('.tile').forEach(t=>{
+        const state=t.dataset.state;
+        if(state==='unknown'){
+          const [a,b]=t.dataset.id.split('-').map(Number);
+          counts[a]++; if(a!==b) counts[b]++;
         }
       });
-
-      counterTable.innerHTML = counts.map((n, i) =>
-        `<tr><td>الرقم ${i}</td><td>${n} باقي</td></tr>`).join('');
-
-      doorsTable.innerHTML = doors.map((arr, i) =>
-        `<tr><td>الباب ${i}</td><td>${arr.length ? arr.join(' , ') : '—'}</td></tr>`).join('');
+      counterTable.innerHTML=counts.map((n,i)=>`<tr><td>الباب ${i}</td><td>${n} متبقي</td></tr>`).join('');
     }
 
-    resetBtn.addEventListener('click', () => {
-      if (!confirm('هل تريد إعادة الضبط؟')) return;
-      document.querySelectorAll('.tile').forEach(t => {
-        applyState(t, 'unknown');
-      });
-      saveStates();
-      updateCounters();
+    resetBtn.addEventListener('click',()=>{
+      if(!confirm('هل تريد إعادة الضبط؟'))return;
+      document.querySelectorAll('.tile').forEach(t=>applyState(t,'unknown'));
+      saveStates();updateCounter();
     });
 
-    buildGrid();
-    updateCounters();
+    buildGrid(); updateCounter();
   </script>
 </body>
 </html>
