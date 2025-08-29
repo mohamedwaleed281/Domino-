@@ -12,185 +12,205 @@
       --clr-border:#cbd5e1;
       --clr-stop:#ef4444;  /* أحمر */
     }
-    *{box-sizing:border-box;margin:0;padding:0;}
+    *{box-sizing:border-box;}
     body{
+      margin:0;
       font-family:"Cairo",sans-serif;
       background:var(--clr-bg);
       color:#0f172a;
       padding:0.5rem;
       display:flex;
-      flex-direction:row;
-      gap:0.5rem;
-      height:100vh;
-      overflow:hidden;
+      gap:0.75rem;
     }
     h1{margin:0 0 0.5rem;text-align:center;font-size:1rem;}
 
-    /* الشبكة */
-    .board{
-      flex:2;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      overflow:auto;
-      padding:0.25rem;
-    }
-    .row{display:flex;gap:0.25rem;justify-content:center;margin-bottom:0.25rem;}
-
-    /* البلاطة */
-    .tile{
-      width:clamp(30px,9vw,48px);
-      aspect-ratio:1/1.6;
-      background:linear-gradient(160deg,var(--clr-card) 0%,var(--clr-card-edge) 100%);
-      border:1px solid var(--clr-border);
-      border-radius:6px;
-      box-shadow:0 1px 3px rgba(0,0,0,.08);
-      position:relative;
-      padding:2px;
-      display:flex;flex-direction:column;justify-content:space-between;align-items:center;
-      user-select:none;cursor:pointer;
-      font-size:0.65rem;
-    }
-    .tile:active{transform:scale(.97);}
-    .marker{
-      position:absolute;top:2px;inset-inline-end:2px;
-      width:7px;height:7px;border-radius:50%;
-      background:transparent;pointer-events:none;
-    }
-    .divider{width:80%;height:1px;background:#6b7280;margin:1px 0;}
-
-    /* الصناديق الجانبية */
-    .sidebar{
+    /* الحاويات */
+    .mainArea{
       flex:1;
       display:flex;
       flex-direction:column;
-      gap:0.5rem;
-      overflow:auto;
+      align-items:center;
     }
-    .counterBox{
+    .grid{display:flex;flex-direction:row;align-items:flex-start;gap:0.5rem;}
+    .col{display:flex;flex-direction:column;gap:0.5rem;align-items:center;}
+
+    /* البلاطة */
+    .tile{
+      width:clamp(36px,9vw,55px);
+      aspect-ratio:1 / 1.6;
+      background:linear-gradient(160deg,var(--clr-card) 0%,var(--clr-card-edge) 100%);
+      border:1px solid var(--clr-border);
+      border-radius:6px;
+      box-shadow:0 2px 5px rgba(0,0,0,.08);
+      position:relative;
+      padding:2px;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      align-items:center;
+      font-size:0.7rem;
+      user-select:none;
+      cursor:pointer;
+    }
+    .tile:active{transform:scale(.95);}    
+
+    /* الأرقام */
+    .numTop{margin-top:3px;font-weight:bold;}
+    .numBottom{margin-bottom:3px;font-weight:bold;}
+    .divider{width:80%;height:1px;background:#6b7280;}
+
+    /* العلامة */
+    .marker{
+      position:absolute;top:2px;inset-inline-end:2px;
+      width:8px;height:8px;border-radius:50%;
+      background:transparent;pointer-events:none;
+    }
+
+    /* الجداول */
+    .sideBox{
+      width:200px;
       background:#ffffff;
       border:1px solid var(--clr-border);
       border-radius:6px;
-      padding:0.25rem;
-      font-size:0.7rem;
-      box-shadow:0 1px 3px rgba(0,0,0,.05);
+      padding:0.5rem;
+      box-shadow:0 2px 6px rgba(0,0,0,.05);
+      margin-bottom:0.5rem;
     }
-    .counterBox h2{
-      margin:0 0 0.25rem;
+    .sideBox h2{
+      margin:0 0 0.3rem;
+      font-size:.9rem;
       text-align:center;
-      font-size:0.8rem;
       color:#0f172a;
     }
-    table{width:100%;border-collapse:collapse;font-size:0.7rem;}
-    td{padding:2px;text-align:center;}
+    table{width:100%;border-collapse:collapse;font-size:.75rem;}
+    td{padding:3px;text-align:center;}
     tr:nth-child(even) td{background:#f8fafc;}
+    #resetBtn{
+      margin-top:6px;width:100%;padding:6px;
+      border:none;border-radius:4px;
+      background:#475569;color:#fff;font-size:.75rem;cursor:pointer;
+    }
+    #resetBtn:hover{background:#334155;}
 
-    /* استجابة للشاشات الصغيرة */
+    /* موبايل */
     @media(max-width:768px){
-      body{flex-direction:column;height:auto;}
-      .board{flex:none;max-height:55vh;}
-      .sidebar{flex:none;flex-direction:row;gap:0.25rem;max-height:40vh;}
-      .counterBox{flex:1;font-size:0.65rem;}
+      body{flex-direction:column;align-items:center;}
+      .sideBox{width:100%;max-width:320px;}
+      .tile{width:clamp(30px,12vw,45px);font-size:0.6rem;}
     }
   </style>
 </head>
 <body>
-  <div class="board" id="dominoBoard"></div>
+  <div class="mainArea">
+    <h1>لوحة تتبع الدومينو</h1>
+    <div class="grid" id="dominoGrid"></div>
+  </div>
 
-  <div class="sidebar">
-    <section class="counterBox">
+  <div class="sideArea">
+    <div class="sideBox">
       <h2>الإحصاء</h2>
       <table><tbody id="counterTable"></tbody></table>
-    </section>
-
-    <section class="counterBox">
+    </div>
+    <div class="sideBox">
       <h2>الكروت المتبقية</h2>
       <table><tbody id="remainingTable"></tbody></table>
-    </section>
+      <button id="resetBtn">إعادة ضبط</button>
+    </div>
   </div>
 
   <script>
-    const board=document.getElementById('dominoBoard');
-    const counterTable=document.getElementById('counterTable');
-    const remainingTable=document.getElementById('remainingTable');
+    const grid = document.getElementById('dominoGrid');
+    const counterTable = document.getElementById('counterTable');
+    const remainingTable = document.getElementById('remainingTable');
+    const resetBtn = document.getElementById('resetBtn');
 
-    /* كل البلاطات */
-    const tilesData=[];
-    for(let top=0;top<=6;top++)for(let bottom=0;bottom<=top;bottom++)tilesData.push({top,bottom,id:`${top}-${bottom}`});
+    /* إنشاء جميع البلاطات */
+    const tilesData = [];
+    for(let top=0; top<=6; top++) for(let bottom=0; bottom<=top; bottom++) 
+      tilesData.push({top,bottom,id:`${bottom}-${top}`});
 
-    const savedStates=JSON.parse(localStorage.getItem('dominoStates')||'{}');
+    const savedStates = JSON.parse(localStorage.getItem('dominoStates')||'{}');
 
-    /* إنشاء بلاطة */
     function createTile(top,bottom,id){
       const tile=document.createElement('div');
-      tile.className='tile';
-      tile.dataset.id=id;
-      const marker=document.createElement('span');marker.className='marker';
-      const topNum=document.createElement('div');topNum.textContent=top;
+      tile.className='tile';tile.dataset.id=id;
+
+      const marker=document.createElement('span');marker.className='marker';tile.appendChild(marker);
+      const numTop=document.createElement('div');numTop.className='numTop';numTop.textContent=top;
       const divider=document.createElement('div');divider.className='divider';
-      const bottomNum=document.createElement('div');bottomNum.textContent=bottom;
-      tile.append(marker,topNum,divider,bottomNum);
+      const numBottom=document.createElement('div');numBottom.className='numBottom';numBottom.textContent=bottom;
+      tile.append(numTop,divider,numBottom);
 
       let initState=savedStates[id]||'unknown';
       applyState(tile,initState);
 
       tile.addEventListener('click',()=>{
-        initState=(initState==='hand')?'unknown':'hand';
-        applyState(tile,initState);
-        saveStates();
-        updateTables();
+        let state=tile.dataset.state;
+        if(state==='unknown'){applyState(tile,'hand');}
+        else{applyState(tile,'unknown');}
+        saveStates();updateCounter();updateRemaining();
       });
+
       return tile;
     }
 
     function applyState(tile,state){
       const marker=tile.querySelector('.marker');
-      marker.style.background=(state==='hand')?'var(--clr-stop)':'transparent';
+      if(state==='hand') marker.style.background='var(--clr-stop)';
+      else marker.style.background='transparent';
+      tile.dataset.state=state;
     }
 
-    function buildBoard(){
-      board.innerHTML='';
-      const col0=document.createElement('div');col0.className='row';
-      for(let i=0;i<=6;i++) col0.appendChild(createTile(0,i,`0-${i}`));
-      board.appendChild(col0);
-
-      for(let n=1;n<=5;n++){
-        const row=document.createElement('div');row.className='row';
-        for(let i=n;i<=5;i++) row.appendChild(createTile(n,i,`${n}-${i}`));
-        board.appendChild(row);
+    function buildGrid(){
+      for(let col=0; col<=6; col++){
+        const colDiv=document.createElement('div');colDiv.className='col';
+        for(let row=0; row<=col; row++){
+          const a=row,b=col;
+          const tile=createTile(b,a,`${a}-${b}`);
+          colDiv.appendChild(tile);
+        }
+        grid.appendChild(colDiv);
       }
-
-      const base=document.createElement('div');base.className='row';
-      for(let i=0;i<=6;i++) base.appendChild(createTile(i,6,`${i}-6`));
-      board.appendChild(base);
     }
 
     function saveStates(){
       const states={};
-      document.querySelectorAll('.tile').forEach(t=>{
-        const marker=t.querySelector('.marker').style.background;
-        states[t.dataset.id]=(marker==='transparent')?'unknown':'hand';
-      });
+      document.querySelectorAll('.tile').forEach(t=>{states[t.dataset.id]=t.dataset.state;});
       localStorage.setItem('dominoStates',JSON.stringify(states));
     }
 
-    function updateTables(){
+    function updateCounter(){
       const counts=Array(7).fill(0);
-      const remaining=Array.from({length:7},()=>[]);
       document.querySelectorAll('.tile').forEach(t=>{
-        const state=(t.querySelector('.marker').style.background==='transparent')?'unknown':'hand';
-        const [a,b]=t.dataset.id.split('-').map(Number);
-        if(state==='unknown'){
-          counts[a]++;counts[b]++;
-          remaining[a].push(`${a}|${b}`);
-          if(a!==b) remaining[b].push(`${a}|${b}`);
+        if(t.dataset.state==='unknown'){
+          const [a,b]=t.dataset.id.split('-').map(Number);
+          counts[a]++;if(a!==b)counts[b]++;
         }
       });
-      counterTable.innerHTML=counts.map((n,i)=>`<tr><td>الرقم ${i}</td><td>${n} باقي</td></tr>`).join('');
-      remainingTable.innerHTML=remaining.map((arr,i)=>`<tr><td>باب ${i}</td><td>${arr.join(', ')||'—'}</td></tr>`).join('');
+      counterTable.innerHTML=counts.map((n,i)=>`<tr><td>الرقم ${i}</td><td>${n} / 7</td></tr>`).join('');
     }
 
-    buildBoard(); updateTables();
+    function updateRemaining(){
+      const groups=Array.from({length:7},()=>[]);
+      document.querySelectorAll('.tile').forEach(t=>{
+        if(t.dataset.state==='unknown'){
+          const [a,b]=t.dataset.id.split('-').map(Number);
+          groups[a].push(`${a}|${b}`);
+          if(a!==b)groups[b].push(`${a}|${b}`);
+        }
+      });
+      remainingTable.innerHTML=groups.map((arr,i)=>
+        `<tr><td>الباب ${i}</td><td>${arr.join(', ')||'—'}</td></tr>`
+      ).join('');
+    }
+
+    resetBtn.addEventListener('click',()=>{
+      if(!confirm('هل تريد إعادة الضبط؟'))return;
+      document.querySelectorAll('.tile').forEach(t=>applyState(t,'unknown'));
+      saveStates();updateCounter();updateRemaining();
+    });
+
+    buildGrid();updateCounter();updateRemaining();
   </script>
 </body>
 </html>
