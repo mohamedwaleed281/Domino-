@@ -10,7 +10,7 @@
       --clr-card:#ffffff;
       --clr-card-edge:#e2e8f0;
       --clr-border:#cbd5e1;
-      --clr-stop:#ef4444;  /* أحمر */
+      --clr-stop:#ef4444;
     }
     *{box-sizing:border-box;}
     body{
@@ -18,164 +18,176 @@
       font-family:"Cairo",sans-serif;
       background:var(--clr-bg);
       color:#0f172a;
-      padding:0.5rem;
+      padding:0.75rem;
       display:flex;
-      flex-direction:row-reverse;
       gap:1rem;
     }
     h1{margin:0 0 0.75rem;text-align:center;font-size:1.2rem;}
 
-    /* الحاوية */
-    .columns{display:flex;flex-direction:row-reverse;gap:0.5rem;align-items:flex-start;}
-    .column{display:flex;flex-direction:column;gap:0.5rem;}
+    /* الشبكة */
+    .mainArea{flex:1;}
+    .grid{display:flex;gap:0.5rem;align-items:flex-start;justify-content:center;flex-wrap:nowrap;}
+    .col{display:flex;flex-direction:column;gap:0.5rem;align-items:center;}
 
     /* البلاطة */
     .tile{
-      width:clamp(42px,12vw,60px);
+      width:clamp(45px,12vw,65px);
       aspect-ratio:1 / 1.6;
       background:linear-gradient(160deg,var(--clr-card) 0%,var(--clr-card-edge) 100%);
       border:1px solid var(--clr-border);
       border-radius:8px;
       box-shadow:0 2px 6px rgba(0,0,0,.08);
       position:relative;
-      padding:4px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      align-items:center;
-      user-select:none;
-      cursor:pointer;
+      display:flex;flex-direction:column;justify-content:space-between;align-items:center;
+      user-select:none;cursor:pointer;padding:6px 2px;
+      font-size:.9rem;font-weight:bold;
     }
     .tile:active{transform:scale(.97);}    
-
     .marker{
-      position:absolute;
-      top:2px;
-      inset-inline-end:2px;
-      width:7px;
-      height:7px;
-      border-radius:50%;
-      background:transparent;
-      pointer-events:none;
+      position:absolute;top:2px;inset-inline-end:2px;
+      width:7px;height:7px;border-radius:50%;background:transparent;pointer-events:none;
     }
-
     .divider{width:80%;height:1px;background:#6b7280;}
 
-    .num{
-      font-size:.9rem;
-      font-weight:bold;
+    /* اللوحة الجانبية */
+    .sidePanel{
+      width:250px;flex-shrink:0;
+      display:flex;flex-direction:column;gap:1rem;
     }
-
-    /* الإحصاء */
     .counterBox{
-      min-width:120px;
-      background:#ffffff;
-      border:1px solid var(--clr-border);
-      border-radius:8px;
-      padding:0.5rem;
-      box-shadow:0 2px 6px rgba(0,0,0,.05);
-      align-self:flex-start;
+      background:#ffffff;border:1px solid var(--clr-border);border-radius:8px;
+      padding:0.5rem;box-shadow:0 2px 6px rgba(0,0,0,.05);
     }
     .counterBox h2{margin:0 0 0.5rem;text-align:center;font-size:.95rem;color:#0f172a;}
-    table{width:100%;border-collapse:collapse;font-size:.8rem;}
-    td{padding:3px 0;text-align:center;}
+    table{width:100%;border-collapse:collapse;font-size:.8rem;word-break:break-word;}
+    td{padding:3px 4px;text-align:center;}
     tr:nth-child(even) td{background:#f8fafc;}
     #resetBtn{margin-top:8px;width:100%;padding:6px;border:none;border-radius:4px;background:#475569;color:#fff;font-size:.8rem;cursor:pointer;}
     #resetBtn:hover{background:#334155;}
   </style>
 </head>
 <body>
-  <div class="columns" id="dominoGrid"></div>
+  <div class="mainArea">
+    <h1>لوحة تتبع الدومينو</h1>
+    <div class="grid" id="dominoGrid"></div>
+  </div>
 
-  <section class="counterBox">
-    <h2>الإحصاء</h2>
-    <table><tbody id="counterTable"></tbody></table>
-    <button id="resetBtn">إعادة ضبط</button>
-  </section>
+  <div class="sidePanel">
+    <section class="counterBox">
+      <h2>الإحصاء</h2>
+      <table><tbody id="counterTable"></tbody></table>
+    </section>
+    <section class="counterBox">
+      <h2>الكروت المتبقية</h2>
+      <table><tbody id="remainingTable"></tbody></table>
+      <button id="resetBtn">إعادة ضبط</button>
+    </section>
+  </div>
 
   <script>
     const grid = document.getElementById('dominoGrid');
     const counterTable = document.getElementById('counterTable');
+    const remainingTable = document.getElementById('remainingTable');
     const resetBtn = document.getElementById('resetBtn');
 
-    /* توليد البلاطات */
-    const tilesData = [];
-    for(let i=0;i<=6;i++){
-      for(let j=i;j<=6;j++){
-        tilesData.push({top:i,bottom:j,id:`${i}-${j}`});
+    /* بناء بيانات البلاطات */
+    const tilesData=[];
+    for(let top=0;top<=6;top++){
+      for(let bottom=0;bottom<=top;bottom++){
+        tilesData.push({top,bottom,id:`${bottom}-${top}`});
       }
     }
 
+    /* استرجاع حالة محفوظة */
     const savedStates = JSON.parse(localStorage.getItem('dominoStates')||'{}');
 
-    function createTile(a,b,id){
+    /* إنشاء بلاطة */
+    function createTile(top,bottom,id){
       const tile=document.createElement('div');tile.className='tile';tile.dataset.id=id;
       const marker=document.createElement('span');marker.className='marker';tile.appendChild(marker);
-
-      const topNum=document.createElement('div');topNum.className='num';topNum.textContent=a;
+      const topEl=document.createElement('div');topEl.textContent=top;
       const divider=document.createElement('div');divider.className='divider';
-      const bottomNum=document.createElement('div');bottomNum.className='num';bottomNum.textContent=b;
+      const bottomEl=document.createElement('div');bottomEl.textContent=bottom;
+      tile.append(topEl,divider,bottomEl);
 
-      tile.append(topNum,divider,bottomNum);
-
-      let currentState=savedStates[id]||'unknown';
-      applyState(tile,currentState);
+      const initState=savedStates[id]||'unknown';applyState(tile,initState);
 
       tile.addEventListener('click',()=>{
-        currentState=(currentState==='hand')?'unknown':'hand';
-        applyState(tile,currentState);
-        saveStates();
-        updateCounter();
+        const current=tile.dataset.state||'unknown';
+        const newState=(current==='hand'?'unknown':'hand');
+        applyState(tile,newState);saveStates();updateCounters();
       });
 
       return tile;
     }
 
+    /* تطبيق حالة */
     function applyState(tile,state){
-      tile.dataset.state=state;
       const marker=tile.querySelector('.marker');
-      if(state==='hand') marker.style.background='var(--clr-stop)';
+      if(state==='hand'){marker.style.background='var(--clr-stop)';}
       else marker.style.background='transparent';
+      tile.dataset.state=state;
     }
 
+    /* بناء الشبكة كمثلث */
     function buildGrid(){
-      for(let i=0;i<=6;i++){
-        const col=document.createElement('div');col.className='column';
-        for(let j=i;j<=6;j++){
-          const tile=createTile(i,j,`${i}-${j}`);
-          col.appendChild(tile);
+      const max=6;
+      for(let col=0;col<=max;col++){
+        const colDiv=document.createElement('div');colDiv.className='col';
+        if(col<max){
+          for(let row=col;row<=max;row++){
+            const tile=createTile(col,row,`${col}-${row}`);
+            colDiv.appendChild(tile);
+          }
+        }else{
+          for(let x=0;x<=max;x++){
+            const tile=createTile(x,max,`${x}-${max}`);
+            colDiv.appendChild(tile);
+          }
         }
-        grid.appendChild(col);
+        grid.appendChild(colDiv);
       }
     }
 
+    /* حفظ */
     function saveStates(){
       const states={};
-      document.querySelectorAll('.tile').forEach(t=>{
-        states[t.dataset.id]=t.dataset.state||'unknown';
-      });
+      document.querySelectorAll('.tile').forEach(t=>{states[t.dataset.id]=t.dataset.state;});
       localStorage.setItem('dominoStates',JSON.stringify(states));
     }
 
-    function updateCounter(){
+    /* تحديث الجداول */
+    function updateCounters(){
+      // جدول الإحصاء
       const counts=Array(7).fill(0);
       document.querySelectorAll('.tile').forEach(t=>{
-        const state=t.dataset.state;
-        if(state==='unknown'){
+        if(t.dataset.state==='unknown'){
           const [a,b]=t.dataset.id.split('-').map(Number);
           counts[a]++; if(a!==b) counts[b]++;
         }
       });
-      counterTable.innerHTML=counts.map((n,i)=>`<tr><td>الباب ${i}</td><td>${n} متبقي</td></tr>`).join('');
+      counterTable.innerHTML=counts.map((n,i)=>`<tr><td>الرقم ${i}</td><td>${n} باقي</td></tr>`).join('');
+
+      // جدول الكروت المتبقية لكل باب
+      const remaining=Array.from({length:7},()=>[]);
+      document.querySelectorAll('.tile').forEach(t=>{
+        if(t.dataset.state==='unknown'){
+          const [a,b]=t.dataset.id.split('-').map(Number);
+          remaining[a].push(`${a}|${b}`);
+          if(a!==b) remaining[b].push(`${a}|${b}`);
+        }
+      });
+      remainingTable.innerHTML=remaining.map((arr,i)=>`<tr><td>الباب ${i}</td><td>${arr.join(' , ')||'—'}</td></tr>`).join('');
     }
 
+    /* إعادة ضبط */
     resetBtn.addEventListener('click',()=>{
       if(!confirm('هل تريد إعادة الضبط؟'))return;
       document.querySelectorAll('.tile').forEach(t=>applyState(t,'unknown'));
-      saveStates();updateCounter();
+      saveStates();updateCounters();
     });
 
-    buildGrid(); updateCounter();
+    buildGrid();updateCounters();
   </script>
 </body>
 </html>
