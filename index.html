@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة تتبع الدومينو</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>لوحة تتبع الدومينو — مصحح</title>
   <style>
     :root{
       --clr-bg:#f4f5f7;
@@ -21,68 +21,108 @@
       padding:0.75rem;
       display:flex;
       gap:1rem;
+      align-items:flex-start;
     }
-    h1{margin:0 0 0.75rem;text-align:center;font-size:1.2rem;}
 
-    /* الشبكة */
+    /* المنطقة الرئيسية (الشبكة) */
     .mainArea{flex:1;}
-    .grid{display:flex;gap:0.5rem;align-items:flex-start;justify-content:center;flex-wrap:nowrap;}
+    h1{margin:0 0 0.75rem;text-align:center;font-size:1.15rem;}
+    .grid{
+      display:flex;
+      gap:0.5rem;
+      justify-content:center;
+      /* تجعل أعمدة الشبكة مصطفة من الأسفل بحيث تظهر قاعده 6 أفقياً */
+      align-items:flex-end;
+      padding:0.75rem;
+    }
     .col{display:flex;flex-direction:column;gap:0.5rem;align-items:center;}
 
     /* البلاطة */
     .tile{
-      width:clamp(45px,12vw,65px);
+      width:clamp(44px,11.5vw,64px);
       aspect-ratio:1 / 1.6;
       background:linear-gradient(160deg,var(--clr-card) 0%,var(--clr-card-edge) 100%);
       border:1px solid var(--clr-border);
       border-radius:8px;
       box-shadow:0 2px 6px rgba(0,0,0,.08);
       position:relative;
-      display:flex;flex-direction:column;justify-content:space-between;align-items:center;
-      user-select:none;cursor:pointer;padding:6px 2px;
-      font-size:.9rem;font-weight:bold;
+      display:flex;
+      flex-direction:column;
+      justify-content:space-between;
+      align-items:center;
+      user-select:none;
+      cursor:pointer;
+      padding:6px 4px;
+      font-weight:700;
+      color:#0f172a;
     }
-    .tile:active{transform:scale(.97);}    
+    .tile:active{transform:scale(.97);}
+
+    /* إشارة الايقاف (emoji) */
     .marker{
-      position:absolute;top:2px;inset-inline-end:2px;
-      width:7px;height:7px;border-radius:50%;background:transparent;pointer-events:none;
+      position:absolute;
+      top:4px;
+      inset-inline-end:6px;
+      font-size:0.95rem;
+      line-height:1;
+      pointer-events:none;
+      user-select:none;
     }
-    .divider{width:80%;height:1px;background:#6b7280;}
+
+    .divider{width:78%;height:1px;background:#6b7280;margin:0;}
+
+    .num{
+      font-size:1rem;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      height:44%;
+      width:100%;
+    }
 
     /* اللوحة الجانبية */
     .sidePanel{
-      width:250px;flex-shrink:0;
-      display:flex;flex-direction:column;gap:1rem;
+      width:300px;flex-shrink:0;
+      display:flex;flex-direction:column;gap:0.75rem;
     }
-    .counterBox{
-      background:#ffffff;border:1px solid var(--clr-border);border-radius:8px;
-      padding:0.5rem;box-shadow:0 2px 6px rgba(0,0,0,.05);
+    .box{
+      background:#fff;border:1px solid var(--clr-border);
+      border-radius:8px;padding:0.6rem;box-shadow:0 2px 6px rgba(0,0,0,.04);
     }
-    .counterBox h2{margin:0 0 0.5rem;text-align:center;font-size:.95rem;color:#0f172a;}
-    table{width:100%;border-collapse:collapse;font-size:.8rem;word-break:break-word;}
-    td{padding:3px 4px;text-align:center;}
+    .box h2{margin:0 0 0.5rem;font-size:0.95rem;text-align:center;}
+    table{width:100%;border-collapse:collapse;font-size:0.86rem;word-break:break-word;}
+    td{padding:6px 4px;text-align:center;}
     tr:nth-child(even) td{background:#f8fafc;}
-    #resetBtn{margin-top:8px;width:100%;padding:6px;border:none;border-radius:4px;background:#475569;color:#fff;font-size:.8rem;cursor:pointer;}
+    #resetBtn{margin-top:8px;width:100%;padding:8px;border:none;border-radius:6px;background:#475569;color:#fff;cursor:pointer;}
     #resetBtn:hover{background:#334155;}
+
+    @media (max-width:720px){
+      body{flex-direction:column-reverse;align-items:stretch;}
+      .sidePanel{width:100%;}
+      .grid{overflow:auto;padding-bottom:0.5rem;}
+    }
   </style>
 </head>
 <body>
+  <!-- الشبكة -->
   <div class="mainArea">
     <h1>لوحة تتبع الدومينو</h1>
-    <div class="grid" id="dominoGrid"></div>
+    <div id="dominoGrid" class="grid" aria-label="شبكة الدومينو"></div>
   </div>
 
-  <div class="sidePanel">
-    <section class="counterBox">
-      <h2>الإحصاء</h2>
-      <table><tbody id="counterTable"></tbody></table>
+  <!-- اللوحة الجانبية: جدولان تحت بعض -->
+  <aside class="sidePanel">
+    <section class="box">
+      <h2>الإحصاء (عدد البلاطات المتبقية لكل رقم)</h2>
+      <table role="table"><tbody id="counterTable"></tbody></table>
     </section>
-    <section class="counterBox">
-      <h2>الكروت المتبقية</h2>
-      <table><tbody id="remainingTable"></tbody></table>
+
+    <section class="box">
+      <h2>الكروت المتبقية من كل باب</h2>
+      <table role="table"><tbody id="remainingTable"></tbody></table>
       <button id="resetBtn">إعادة ضبط</button>
     </section>
-  </div>
+  </aside>
 
   <script>
     const grid = document.getElementById('dominoGrid');
@@ -90,104 +130,129 @@
     const remainingTable = document.getElementById('remainingTable');
     const resetBtn = document.getElementById('resetBtn');
 
-    /* بناء بيانات البلاطات */
-    const tilesData=[];
-    for(let top=0;top<=6;top++){
-      for(let bottom=0;bottom<=top;bottom++){
-        tilesData.push({top,bottom,id:`${bottom}-${top}`});
+    // تحميل الحالات المحفوظة
+    const savedStates = JSON.parse(localStorage.getItem('dominoStates') || '{}');
+
+    // مسح وبناء الشبكة — كل بلاطة تُنشأ مرة واحدة فقط
+    function buildGrid(){
+      grid.innerHTML = ''; // مهم: نمسح قبل البناء لتفادي التكرار
+
+      const max = 6;
+
+      // لكل عمود i من 0 .. 6 نضع البلاطات i|i .. i|5 ثم نضع البلاطة i|6 كقاعدة في أسفل العمود
+      // هذا يجعل كل عمود يقف على قاعدته مما يؤدي إلى قاعدة أفقية مرئية
+      for(let col=0; col<=max; col++){
+        const colDiv = document.createElement('div');
+        colDiv.className = 'col';
+        // الجزء العلوي من العمود: من col|col حتى col|5
+        for(let r = col; r <= max-1; r++){
+          const tile = createTile(col, r);
+          colDiv.appendChild(tile);
+        }
+        // البلاطة الخاصة بالقاعدة: col|6 — تُضاف أخيراً لتكون أسفل العمود
+        const baseTile = createTile(col, max);
+        colDiv.appendChild(baseTile);
+
+        grid.appendChild(colDiv);
       }
     }
 
-    /* استرجاع حالة محفوظة */
-    const savedStates = JSON.parse(localStorage.getItem('dominoStates')||'{}');
+    // تنشئ بلاطة وحالة الحفظ تطبق عليها (id = "a-b" حيث a<=b)
+    function createTile(a,b){
+      const id = `${a}-${b}`;
+      const tile = document.createElement('div');
+      tile.className = 'tile';
+      tile.dataset.id = id;
 
-    /* إنشاء بلاطة */
-    function createTile(top,bottom,id){
-      const tile=document.createElement('div');tile.className='tile';tile.dataset.id=id;
-      const marker=document.createElement('span');marker.className='marker';tile.appendChild(marker);
-      const topEl=document.createElement('div');topEl.textContent=top;
-      const divider=document.createElement('div');divider.className='divider';
-      const bottomEl=document.createElement('div');bottomEl.textContent=bottom;
-      tile.append(topEl,divider,bottomEl);
+      const marker = document.createElement('span');
+      marker.className = 'marker';
+      tile.appendChild(marker);
 
-      const initState=savedStates[id]||'unknown';applyState(tile,initState);
+      const topEl = document.createElement('div');
+      topEl.className = 'num';
+      topEl.textContent = a;
 
-      tile.addEventListener('click',()=>{
-        const current=tile.dataset.state||'unknown';
-        const newState=(current==='hand'?'unknown':'hand');
-        applyState(tile,newState);saveStates();updateCounters();
+      const divider = document.createElement('div');
+      divider.className = 'divider';
+
+      const bottomEl = document.createElement('div');
+      bottomEl.className = 'num';
+      bottomEl.textContent = b;
+
+      tile.append(topEl, divider, bottomEl);
+
+      // حالة مبدئية إن وُجدت محفوظة
+      const init = savedStates[id] || 'unknown';
+      applyState(tile, init);
+
+      // تبديل عند الضغط: unknown <-> hand (ويعرض 🛑)
+      tile.addEventListener('click', () => {
+        const cur = tile.dataset.state || 'unknown';
+        const next = (cur === 'hand') ? 'unknown' : 'hand';
+        applyState(tile, next);
+        saveStates();
+        updateTables();
       });
 
       return tile;
     }
 
-    /* تطبيق حالة */
-    function applyState(tile,state){
-      const marker=tile.querySelector('.marker');
-      if(state==='hand'){marker.style.background='var(--clr-stop)';}
-      else marker.style.background='transparent';
-      tile.dataset.state=state;
+    // تطبيق الحالة (يعرض/يحذف الإيموجي في الزاوية ويخزن dataset.state)
+    function applyState(tile, state){
+      tile.dataset.state = state;
+      const mk = tile.querySelector('.marker');
+      if(state === 'hand') mk.textContent = '🛑';
+      else mk.textContent = '';
     }
 
-    /* بناء الشبكة كمثلث */
-    function buildGrid(){
-      const max=6;
-      for(let col=0;col<=max;col++){
-        const colDiv=document.createElement('div');colDiv.className='col';
-        if(col<max){
-          for(let row=col;row<=max;row++){
-            const tile=createTile(col,row,`${col}-${row}`);
-            colDiv.appendChild(tile);
-          }
-        }else{
-          for(let x=0;x<=max;x++){
-            const tile=createTile(x,max,`${x}-${max}`);
-            colDiv.appendChild(tile);
-          }
-        }
-        grid.appendChild(colDiv);
-      }
-    }
-
-    /* حفظ */
+    // حفظ الحالات في localStorage
     function saveStates(){
-      const states={};
-      document.querySelectorAll('.tile').forEach(t=>{states[t.dataset.id]=t.dataset.state;});
-      localStorage.setItem('dominoStates',JSON.stringify(states));
+      const states = {};
+      document.querySelectorAll('.tile').forEach(t => {
+        states[t.dataset.id] = t.dataset.state || 'unknown';
+      });
+      localStorage.setItem('dominoStates', JSON.stringify(states));
     }
 
-    /* تحديث الجداول */
-    function updateCounters(){
-      // جدول الإحصاء
-      const counts=Array(7).fill(0);
-      document.querySelectorAll('.tile').forEach(t=>{
-        if(t.dataset.state==='unknown'){
-          const [a,b]=t.dataset.id.split('-').map(Number);
-          counts[a]++; if(a!==b) counts[b]++;
-        }
-      });
-      counterTable.innerHTML=counts.map((n,i)=>`<tr><td>الرقم ${i}</td><td>${n} باقي</td></tr>`).join('');
+    // تحديث الجدولين: العد + تفاصيل الكروت المتبقية لكل باب
+    function updateTables(){
+      const counts = Array(7).fill(0);
+      const remaining = Array.from({length:7}, () => []);
 
-      // جدول الكروت المتبقية لكل باب
-      const remaining=Array.from({length:7},()=>[]);
-      document.querySelectorAll('.tile').forEach(t=>{
-        if(t.dataset.state==='unknown'){
-          const [a,b]=t.dataset.id.split('-').map(Number);
+      // كل بلاطة تُعامل مرة واحدة لأن كل بلاطة فريدة في DOM الآن
+      document.querySelectorAll('.tile').forEach(t => {
+        const state = t.dataset.state || 'unknown';
+        if(state === 'unknown'){
+          const [a,b] = t.dataset.id.split('-').map(Number);
+          counts[a]++; if(a !== b) counts[b]++;
+          // نضيف التسمية بصيغة a|b
           remaining[a].push(`${a}|${b}`);
-          if(a!==b) remaining[b].push(`${a}|${b}`);
+          if(a !== b) remaining[b].push(`${a}|${b}`);
         }
       });
-      remainingTable.innerHTML=remaining.map((arr,i)=>`<tr><td>الباب ${i}</td><td>${arr.join(' , ')||'—'}</td></tr>`).join('');
+
+      // جدول العد — يجب أن يعطي 7 لكل رقم عند البداية (كل البلاطات unknown)
+      counterTable.innerHTML = counts.map((n,i) =>
+        `<tr><td>الباب ${i}</td><td>${n} متبقي</td></tr>`
+      ).join('');
+
+      // جدول البطاقات المتبقية — نعرض البلاطات مفصولة بفواصل
+      remainingTable.innerHTML = remaining.map((arr,i) =>
+        `<tr><td>الباب ${i}</td><td>${arr.length ? arr.join(' , ') : '—'}</td></tr>`
+      ).join('');
     }
 
-    /* إعادة ضبط */
-    resetBtn.addEventListener('click',()=>{
-      if(!confirm('هل تريد إعادة الضبط؟'))return;
-      document.querySelectorAll('.tile').forEach(t=>applyState(t,'unknown'));
-      saveStates();updateCounters();
+    // زر إعادة الضبط
+    resetBtn.addEventListener('click', () => {
+      if(!confirm('هل تريد إعادة الضبط؟')) return;
+      document.querySelectorAll('.tile').forEach(t => applyState(t, 'unknown'));
+      saveStates();
+      updateTables();
     });
 
-    buildGrid();updateCounters();
+    // تهيئة
+    buildGrid();
+    updateTables();
   </script>
 </body>
 </html>
