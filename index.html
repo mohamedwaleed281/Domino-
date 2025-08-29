@@ -14,10 +14,6 @@
       --clr-stop: #ef4444;
     }
 
-    * {
-      box-sizing: border-box;
-    }
-
     body {
       margin: 0;
       font-family: "Cairo", sans-serif;
@@ -71,9 +67,7 @@
       cursor: pointer;
     }
 
-    .tile:active {
-      transform: scale(0.97);
-    }
+    .tile:active { transform: scale(0.97); }
 
     .marker {
       position: absolute;
@@ -107,7 +101,7 @@
       border: 1px solid var(--clr-border);
       border-radius: 8px;
       padding: 0.5rem;
-      min-width: 180px;
+      min-width: 200px;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     }
 
@@ -125,13 +119,11 @@
     }
 
     td {
-      padding: 3px 0;
+      padding: 3px 4px;
       text-align: center;
     }
 
-    tr:nth-child(even) td {
-      background: #f8fafc;
-    }
+    tr:nth-child(even) td { background: #f8fafc; }
 
     #resetBtn {
       margin-top: 8px;
@@ -145,17 +137,11 @@
       cursor: pointer;
     }
 
-    #resetBtn:hover {
-      background: #334155;
-    }
+    #resetBtn:hover { background: #334155; }
 
     @media (max-width: 600px) {
-      .tile {
-        width: 48px;
-      }
-      .tileNumber {
-        font-size: 1rem;
-      }
+      .tile { width: 48px; }
+      .tileNumber { font-size: 1rem; }
     }
   </style>
 </head>
@@ -167,6 +153,10 @@
     <section class="counterBox">
       <h2>الإحصاء</h2>
       <table><tbody id="counterTable"></tbody></table>
+
+      <h2>البوابات المتبقية</h2>
+      <table><tbody id="doorsTable"></tbody></table>
+
       <button id="resetBtn">إعادة ضبط</button>
     </section>
   </div>
@@ -174,12 +164,8 @@
   <script>
     const grid = document.getElementById('dominoGrid');
     const counterTable = document.getElementById('counterTable');
+    const doorsTable = document.getElementById('doorsTable');
     const resetBtn = document.getElementById('resetBtn');
-
-    const tilesData = [];
-    for (let top = 0; top <= 6; top++)
-      for (let bottom = 0; bottom <= top; bottom++)
-        tilesData.push({ top, bottom, id: `${bottom}-${top}` });
 
     const savedStates = JSON.parse(localStorage.getItem('dominoStates') || '{}');
 
@@ -212,7 +198,7 @@
         currentState = currentState === 'hand' ? 'unknown' : 'hand';
         applyState(tile, currentState);
         saveStates();
-        updateCounter();
+        updateCounters();
       });
 
       return tile;
@@ -221,8 +207,7 @@
     function applyState(tile, state) {
       tile.dataset.state = state;
       const marker = tile.querySelector('.marker');
-      if (state === 'hand') marker.style.background = 'var(--clr-stop)';
-      else marker.style.background = 'transparent';
+      marker.style.background = state === 'hand' ? 'var(--clr-stop)' : 'transparent';
     }
 
     function buildGrid() {
@@ -231,10 +216,10 @@
         const row = document.createElement('div');
         row.className = 'row';
         for (let j = 0; j <= i; j++) {
-          const top = Math.max(i, j);
-          const bottom = Math.min(i, j);
-          const id = `${bottom}-${top}`;
-          const tile = createTile(top, bottom, id);
+          const top = j;
+          const bottom = i;
+          const id = `${top}-${bottom}`;
+          const tile = createTile(bottom, top, id);
           row.appendChild(tile);
         }
         grid.appendChild(row);
@@ -249,18 +234,26 @@
       localStorage.setItem('dominoStates', JSON.stringify(states));
     }
 
-    function updateCounter() {
+    function updateCounters() {
       const counts = Array(7).fill(0);
+      const doors = Array(7).fill(null).map(() => []);
+
       document.querySelectorAll('.tile').forEach(t => {
         const state = t.dataset.state;
         if (state === 'unknown') {
           const [a, b] = t.dataset.id.split('-').map(Number);
           counts[a]++;
-          if (a !== b) counts[b]++;
+          counts[b]++;
+          doors[a].push(t.dataset.id);
+          if (a !== b) doors[b].push(t.dataset.id);
         }
       });
+
       counterTable.innerHTML = counts.map((n, i) =>
         `<tr><td>الرقم ${i}</td><td>${n} باقي</td></tr>`).join('');
+
+      doorsTable.innerHTML = doors.map((arr, i) =>
+        `<tr><td>الباب ${i}</td><td>${arr.length ? arr.join(' , ') : '—'}</td></tr>`).join('');
     }
 
     resetBtn.addEventListener('click', () => {
@@ -269,11 +262,11 @@
         applyState(t, 'unknown');
       });
       saveStates();
-      updateCounter();
+      updateCounters();
     });
 
     buildGrid();
-    updateCounter();
+    updateCounters();
   </script>
 </body>
 </html>
